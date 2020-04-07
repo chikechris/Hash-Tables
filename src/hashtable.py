@@ -5,9 +5,9 @@
 
 class LinkedPair:
     def __init__(self, key, value):
-        self.key = key          # array index for a hash table
+        self.key = key
         self.value = value
-        self.next = None        # next is the pointer
+        self.next = None
 
 
 class HashTable:
@@ -17,31 +17,30 @@ class HashTable:
     '''
 
     def __init__(self, capacity):
-        self.capacity = capacity      # Number of buckets in the hash table
+        self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
 
-    def _hash(self, key):  # done
+    def _hash(self, key):
         '''
         Hash an arbitrary key and return an integer.
         You may replace the Python hash with DJB2 as a stretch goal.
         '''
         return hash(key)
 
-    def _hash_djb2(self, key):  # stretch
+    def _hash_djb2(self, key):
         '''
         Hash an arbitrary key using DJB2 hash
         OPTIONAL STRETCH: Research and implement DJB2
         '''
         pass
 
-    def _hash_mod(self, key):  # done
+    def _hash_mod(self, key):
         '''
         Take an arbitrary key and return a valid integer index
         within the storage capacity of the hash table.
         '''
         return self._hash(key) % self.capacity
 
-# do the below functions: --> use linked list operations. Similar (data-structures material)
     def insert(self, key, value):
         '''
         Store the value with the given key.
@@ -49,22 +48,28 @@ class HashTable:
         Fill this in.
         '''
         # traverse down the linked list to see if the key is already there
-
         index = self._hash_mod(key)
         # print("Index", index)
-        current_value = self.storage[index]
-        # print("Current Value", current_value) # prints to none --> pointer helps us to move through list
+        current_pair = self.storage[index]  # node
+        # print("Current Pair", current_pair.key) # prints to none --> pointer helps us to move through list
+        last_pair = None  # pointer
 
-        if current_value is not None:
+        while current_pair is not None and current_pair.key is not key:
+            # print("while statement")
+            last_pair = current_pair
+            current_pair = last_pair.next
+
+        if current_pair is not None:
             # if the key does exist, than you want to overwrite the value
-            print("Warning", value, "is overwriting", current_value.value)
-            newLinkedPair = LinkedPair(key, value)
-            newLinkedPair.next = current_value
-            current_value = newLinkedPair
+            # print("Hitting top of if statement", current_pair.value)
+            current_pair.value = value
 
         else:  # if we hit none or null, then we know it's not there
             # add to the end of the link list (creating a new value)
-            current_value = LinkedPair(key, value)
+            newLinkedPair = LinkedPair(key, value)
+            newLinkedPair.next = self.storage[index]
+            self.storage[index] = newLinkedPair
+            # print("In else statement",self.storage[index])
 
     def remove(self, key):
         '''
@@ -72,7 +77,21 @@ class HashTable:
         Print a warning if the key is not found.
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current_node = self.storage[index]
+        last_node = None
+
+        while current_node is not None and current_node.key != key:
+            last_node = current_node  # Keeping track of what came before
+            current_node = last_node.next  # haven't found it
+
+        if current_node is None:
+            print("warning the key can't be found")
+        else:
+            if last_node is None:
+                self.storage[index] = current_node.next
+            else:
+                last_node.next = current_node.next
 
     def retrieve(self, key):
         '''
@@ -82,10 +101,11 @@ class HashTable:
         '''
         index = self._hash_mod(key)
         current_key = self.storage[index]
+
         while current_key:
-            if current_key.key ! = key:
+            if current_key.key != key:
                 current_key = current_key.next
-                print("Current Key", current_key)
+                # print("Current Key",current_key)
             else:
                 return current_key.value
         return None
@@ -96,7 +116,15 @@ class HashTable:
         rehash all key/value pairs.
         Fill this in.
         '''
-        pass
+        self.capacity *= 2  # double capacity
+        new_storage = self.storage  # define temporary new storage
+        self.storage = [None] * self.capacity  # extending the old storage
+
+        for each_node in new_storage:  # for each node/bucket in the new storage
+            current_node = each_node  # create iterator for each node
+            while current_node:  # insert the key and value
+                self.insert(current_node.key, current_node.value)
+                current_node = current_node.next  # changing the pointer
 
 
 if __name__ == "__main__":
@@ -118,7 +146,7 @@ if __name__ == "__main__":
     ht.resize()
     new_capacity = len(ht.storage)
 
-    print(f"\nResized from {old_capacity} to {new_capacity}.\n")
+    # print(f"\nResized from {old_capacity} to {new_capacity}.\n")
 
     # Test if data intact after resizing
     print(ht.retrieve("line_1"))
@@ -126,3 +154,4 @@ if __name__ == "__main__":
     print(ht.retrieve("line_3"))
 
     print("")
+    print('removed', ht.remove("line_3"))
